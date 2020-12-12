@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
+import 'package:location_example/sendData.dart';
+import 'package:logger/logger.dart';
 
 class ListenLocationWidget extends StatefulWidget {
   const ListenLocationWidget({Key key}) : super(key: key);
@@ -12,10 +14,11 @@ class ListenLocationWidget extends StatefulWidget {
 
 class _ListenLocationState extends State<ListenLocationWidget> {
   final Location location = Location();
-
+  var logger = Logger();
   LocationData _location;
   StreamSubscription<LocationData> _locationSubscription;
   String _error;
+  SendData dataSender = SendData();
 
   Future<void> _listenLocation() async {
     _locationSubscription =
@@ -25,6 +28,9 @@ class _ListenLocationState extends State<ListenLocationWidget> {
       });
       _locationSubscription.cancel();
     }).listen((LocationData currentLocation) {
+      logger.d('got data :: ${currentLocation}');
+      sendDataToServer(currentLocation);
+      logger.d('data sent');
       setState(() {
         _error = null;
 
@@ -35,6 +41,11 @@ class _ListenLocationState extends State<ListenLocationWidget> {
 
   Future<void> _stopListen() async {
     _locationSubscription.cancel();
+  }
+
+  Future<void> sendDataToServer(LocationData currentLocation) async {
+    logger.d('sending data :: ${currentLocation}');
+    return dataSender.uploadGPSData(currentLocation);
   }
 
   @override
